@@ -16,7 +16,7 @@
 
 set -e
 
-: ${LLVM_VERSION:=llvmorg-10.0.0}
+: ${LLVM_VERSION:=llvmorg-11.0.0-rc5}
 ASSERTS=OFF
 BUILDDIR=build
 unset HOST
@@ -63,6 +63,7 @@ if [ -n "$SYNC" ] || [ -n "$CHECKOUT" ]; then
     cd llvm-project
     [ -z "$SYNC" ] || git fetch
     git checkout $LLVM_VERSION
+    git am ../enable-emutls-for-mingw.patch
     cd ..
 fi
 

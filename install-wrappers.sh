@@ -63,7 +63,7 @@ mkdir -p "$PREFIX/bin"
 cp wrappers/*-wrapper.sh "$PREFIX/bin"
 if [ -n "$HOST" ]; then
     # TODO: If building natively on msys, pick up the default HOST value from there.
-    WRAPPER_FLAGS="$WRAPPER_FLAGS -DDEFAULT_TARGET=\"$HOST\""
+    WRAPPER_FLAGS="$WRAPPER_FLAGS -DDEFAULT_TARGET=\"$HOST\" -DDEFAULT_BFD"
     for i in wrappers/*-wrapper.sh; do
         cat $i | sed 's/^DEFAULT_TARGET=.*/DEFAULT_TARGET='$HOST/ > "$PREFIX/bin/$(basename $i)"
     done

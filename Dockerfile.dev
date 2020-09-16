@@ -1,9 +1,11 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
+
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update -qq && apt-get install -qqy --no-install-recommends \
     git wget bzip2 file unzip libtool pkg-config cmake build-essential \
     automake yasm gettext autopoint vim python ninja-build subversion \
-    ca-certificates && \
+    ca-certificates clang lld && \
     apt-get clean -y && \
     rm -rf /var/lib/apt/lists/*
 
@@ -15,10 +17,16 @@ WORKDIR /build
 
 ENV TOOLCHAIN_PREFIX=/opt/llvm-mingw
 
+RUN update-alternatives --set cc /usr/bin/clang
+RUN update-alternatives --set c++ /usr/bin/clang++
+RUN update-alternatives --install "/usr/bin/ld" "ld" "/usr/bin/ld.bfd" 10
+RUN update-alternatives --install "/usr/bin/ld" "ld" "/usr/bin/ld.lld" 90
+
 ARG FULL_LLVM
 
 # Build LLVM
 COPY build-llvm.sh ./
+COPY enable-emutls-for-mingw.patch ./
 RUN ./build-llvm.sh $TOOLCHAIN_PREFIX
 
 # Strip the LLVM install output immediately. (This doesn't reduce the
@@ -29,14 +37,14 @@ RUN ./build-llvm.sh $TOOLCHAIN_PREFIX
 COPY strip-llvm.sh ./
 RUN ./strip-llvm.sh $TOOLCHAIN_PREFIX
 
-ARG TOOLCHAIN_ARCHS="i686 x86_64 armv7 aarch64"
+ARG TOOLCHAIN_ARCHS="i686 x86_64"
 
 # Install the usual $TUPLE-clang binaries
 COPY wrappers/*.sh wrappers/*.c wrappers/*.h ./wrappers/
 COPY install-wrappers.sh ./
 RUN ./install-wrappers.sh $TOOLCHAIN_PREFIX
 
-ARG DEFAULT_CRT=ucrt
+ARG DEFAULT_CRT=msvcrt
 
 # Build MinGW-w64
 COPY build-mingw-w64.sh ./

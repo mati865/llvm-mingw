@@ -1,0 +1,25 @@
+From cb87b96ed95be936d1633ccfc2b50db49eaf5fe4 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Mateusz=20Miku=C5=82a?= <mati865@gmail.com>
+Date: Tue, 15 Sep 2020 22:55:51 +0200
+Subject: [PATCH] Use emutls for compat with GCC
+
+---
+ llvm/include/llvm/ADT/Triple.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/llvm/include/llvm/ADT/Triple.h b/llvm/include/llvm/ADT/Triple.h
+index b67da41f30c..7d899cbda31 100644
+--- a/llvm/include/llvm/ADT/Triple.h
++++ b/llvm/include/llvm/ADT/Triple.h
+@@ -768,7 +768,7 @@ public:
+ 
+   /// Tests whether the target uses emulated TLS as default.
+   bool hasDefaultEmulatedTLS() const {
+-    return isAndroid() || isOSOpenBSD() || isWindowsCygwinEnvironment();
++    return isAndroid() || isOSOpenBSD() || isOSCygMing();
+   }
+ 
+   /// @}
+-- 
+2.28.0.windows.1
+

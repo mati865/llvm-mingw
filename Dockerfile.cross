@@ -8,11 +8,13 @@
 # platform, but just copies over the runtime libraries from the existing
 # toolchain in the base docker image.
 
-ARG BASE=mstorsjo/llvm-mingw:dev
+ARG BASE=mati865/mingw-for-rust:dev
 FROM $BASE
 
+ENV DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get update -qq && \
-    apt-get install -qqy zip && \
+    apt-get install -qqy curl tar zip && \
     apt-get clean -y && \
     rm -rf /var/lib/apt/lists/*
 
@@ -31,14 +33,18 @@ ENV HOST=$CROSS_ARCH-w64-mingw32
 ARG FULL_LLVM
 
 COPY build-llvm.sh .
+COPY enable-emutls-for-mingw.patch .
 RUN ./build-llvm.sh $CROSS_TOOLCHAIN_PREFIX --host=$HOST
 COPY strip-llvm.sh .
 RUN ./strip-llvm.sh $CROSS_TOOLCHAIN_PREFIX --host=$HOST
 
-ARG TOOLCHAIN_ARCHS="i686 x86_64 armv7 aarch64"
+ARG TOOLCHAIN_ARCHS="i686 x86_64"
 
 COPY build-mingw-w64.sh build-mingw-w64-tools.sh ./
 RUN ./build-mingw-w64-tools.sh $CROSS_TOOLCHAIN_PREFIX --skip-include-triplet-prefix --host=$HOST
+
+COPY build-binutils.sh .
+RUN ./build-binutils.sh $CROSS_TOOLCHAIN_PREFIX --host=$HOST
 
 COPY wrappers/*.sh wrappers/*.c wrappers/*.h ./wrappers/
 COPY install-wrappers.sh .
@@ -46,9 +52,6 @@ RUN ./install-wrappers.sh $CROSS_TOOLCHAIN_PREFIX --host=$HOST
 
 COPY prepare-cross-toolchain.sh .
 RUN ./prepare-cross-toolchain.sh $TOOLCHAIN_PREFIX $CROSS_TOOLCHAIN_PREFIX $CROSS_ARCH
-
-COPY build-make.sh .
-RUN ./build-make.sh $CROSS_TOOLCHAIN_PREFIX --host=$HOST
 
 ARG TAG
 RUN ln -s $CROSS_TOOLCHAIN_PREFIX llvm-mingw && \

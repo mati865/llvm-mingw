@@ -225,7 +225,11 @@ int _tmain(int argc, TCHAR* argv[]) {
     exec_argv[arg++] = target;
     exec_argv[arg++] = _T("-rtlib=compiler-rt");
     exec_argv[arg++] = _T("-stdlib=libc++");
+#ifdef DEFAULT_BFD
+    exec_argv[arg++] = _T("-fuse-ld=bfd");
+#else
     exec_argv[arg++] = _T("-fuse-ld=lld");
+#endif
     exec_argv[arg++] = _T("-Qunused-arguments");
 
     for (int i = 1; i < argc; i++)
